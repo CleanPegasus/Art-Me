@@ -6,6 +6,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import skimage.io
+import  skimage.transform
 
 from mrcnn import utils
 import mrcnn.model as modellib
@@ -49,10 +50,12 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
-def mask(IMAGE_PATH, BACKGROUND_PATH):
+def mask_image(IMAGE_PATH, BACKGROUND_PATH):
 
     image = skimage.io.imread(IMAGE_PATH)
     background = skimage.io.imread(BACKGROUND_PATH)
+
+    image = skimage.transform.resize(image, (400, 400), anti_aliasing = True)
 
     results = model.detect([image], verbose = 1)
 
@@ -62,5 +65,9 @@ def mask(IMAGE_PATH, BACKGROUND_PATH):
     background = background[:result_image.shape[0], :result_image.shape[1]]
     masked_background = background * np.bitwise_not(mask_image)
     mask_result = masked_background + result_image
+    skimage.io.imsave('masked_image.jpg', mask_result)
 
-    return mask_result
+if __name__ == "__main__":
+    image_path = 'new_sample.jpg'
+    background_path = 'background.jpg'
+    mask_image(image_path, background_path)
