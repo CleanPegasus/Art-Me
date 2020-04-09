@@ -56,3 +56,10 @@ results = model.detect([image], verbose = 1)
 mask_image = results[0]['masks']
 result_image = image*mask_image
 
+result_image = image*mask_image
+
+background = skimage.io.imread('background.jpg')
+background = background[:result_image.shape[0], :result_image.shape[1]]
+
+masked_background = background * np.bitwise_not(mask_image)
+net_result = masked_background + result_image
