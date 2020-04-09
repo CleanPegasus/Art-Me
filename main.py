@@ -7,22 +7,25 @@ from tensorflow.keras.applications import vgg19
 from tensorflow.keras import backend as K
 
 from scipy.optimize import fmin_l_bfgs_b
-from scipy.misc import imsave
+import cv2
 
-from mask import mask_image
+#from mask import mask_image
 
-BACKGROUND_PATH = 'background.jpg'
-IMAGE_PATH = 'sample.jpeg'
-STYLE_PATH = 'wave.jpg'
+#BACKGROUND_PATH = 'background.jpg'
+#IMAGE_PATH = 'sample.jpg'
+TARGET_PATH = "no_name.jpg"
+STYLE_PATH = 'mosaic.jpg'
 
-masked_image = mask_image(IMAGE_PATH, BACKGROUND_PATH)
-width, height = masked_image.size
+#mask_image(IMAGE_PATH, BACKGROUND_PATH)
+
+width, height = load_img(TARGET_PATH).size
 image_height = 400
 image_width = int(width * image_height/height)
 
-def preprocess_image(image):
 
-    img = image.resize((image_height, image_height))
+def preprocess_image(image_path):
+
+    img = load_img(image_path, target_size = (image_height, image_width))
     img = img_to_array(img)
     img = np.expand_dims(img, axis = 0)
     img = vgg19.preprocess_input(img)
@@ -68,11 +71,9 @@ class Evaluate(object):
         
         return grad_value
 
-target_image = K.constant(preprocess_image(masked_image)
-style_image = load_img(STYLE_PATH, target_size = (image_height, image_width))
-style_ref_image = K.constant(preprocess_image(style_image))
+target_image = K.constant(preprocess_image(TARGET_PATH))
+style_ref_image = K.constant(preprocess_image(STYLE_PATH))
 combined_image = K.placeholder((1, image_height, image_width, 3))
-
 input_tensor = K.concatenate([target_image, style_ref_image, combined_image], axis = 0)
 
 model = vgg19.VGG19(input_tensor = input_tensor, weights = 'imagenet', include_top = False)
@@ -147,7 +148,7 @@ evaluator = Evaluate()
 
 iterations = 2
 
-x = preprocess_image(target_path)
+x = preprocess_image(TARGET_PATH)
 x = x.flatten()
 
 for i in range(iterations):
@@ -157,6 +158,6 @@ for i in range(iterations):
     print("Loss: ", min_val)
     img = x.copy().reshape((image_height, image_width, 3))
     img = deprocess_image(img)
-    fname = "musk_waves" + "_at_iteration_%d.png" %i
-    imsave(fname, img)
+    fname = "result_image" + "_at_iteration_%d.png" %i
+    cv2.imwrite(fname, img)
     print("Image Saved")
