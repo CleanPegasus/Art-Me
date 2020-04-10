@@ -2,6 +2,8 @@
 import numpy as np
 import time
 
+import skimage.transform
+
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow.keras.applications import vgg19
 from tensorflow.keras import backend as K
@@ -11,8 +13,8 @@ import cv2
 
 from mask import mask_image
 
-#BACKGROUND_PATH = 'background.jpg'
-#IMAGE_PATH = 'sample.jpg'
+image_path = 'sample_resized.jpg'
+background_path = 'background_resized.jpg'
 TARGET_PATH = "no_name.jpg"
 STYLE_PATH = 'mosaic.jpg'
 
@@ -22,10 +24,21 @@ STYLE_PATH = 'mosaic.jpg'
 image_height = 400
 image_width = 400
 
+masked_image = mask_image(image_path, background_path)
+
+
+def preprocess_image(image):
+
+    #img = skimage.transform.resize(image, (400 ,400))
+    #img = img_to_array(img)
+    img = np.expand_dims(image, axis = 0)
+    img = vgg19.preprocess_input(img)
+
+    return img
 
 
 
-def preprocess_image(image_path):
+def preprocess_background(image_path):
 
     #img = load_img(image_path, target_size = (image_height, image_width))
     img = cv2.imread(image_path)
@@ -75,8 +88,8 @@ class Evaluate(object):
         
         return grad_value
 
-target_image = K.constant(preprocess_image(TARGET_PATH))
-style_ref_image = K.constant(preprocess_image(STYLE_PATH))
+target_image = K.constant(preprocess_image(masked_image))
+style_ref_image = K.constant(preprocess_background(STYLE_PATH))
 combined_image = K.placeholder((1, image_height, image_width, 3))
 input_tensor = K.concatenate([target_image, style_ref_image, combined_image], axis = 0)
 
@@ -152,7 +165,7 @@ evaluator = Evaluate()
 
 iterations = 1
 
-x = preprocess_image(TARGET_PATH)
+x = preprocess_image(masked_image)
 x = x.flatten()
 
 for i in range(iterations):
