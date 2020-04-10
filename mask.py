@@ -55,19 +55,27 @@ def mask_image(IMAGE_PATH, BACKGROUND_PATH):
     image = skimage.io.imread(IMAGE_PATH)
     background = skimage.io.imread(BACKGROUND_PATH)
 
-    image = skimage.transform.resize(image, (400, 400), anti_aliasing = True)
+    #image = skimage.transform.resize(image, (400, 400), anti_aliasing = True)
 
     results = model.detect([image], verbose = 1)
 
     mask_image = results[0]['masks']
+
+    if(mask_image.shape[2] > 1):
+        mask_image = mask_image[:, :, 0]
+        mask_image = np.expand_dims(mask_image, axis = 3)
+    
     result_image = image*mask_image
     result_image = image*mask_image
     background = background[:result_image.shape[0], :result_image.shape[1]]
     masked_background = background * np.bitwise_not(mask_image)
     mask_result = masked_background + result_image
+    mask_result = skimage.transform.resize(mask_result, (400, 400))
     skimage.io.imsave('masked_image.jpg', mask_result)
 
+    return mask_result
+
 if __name__ == "__main__":
-    image_path = 'new_sample.jpg'
-    background_path = 'background.jpg'
+    image_path = 'elon_musk.jpg'
+    background_path = 'background_resized.jpg'
     mask_image(image_path, background_path)
