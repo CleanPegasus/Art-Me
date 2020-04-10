@@ -9,7 +9,7 @@ from tensorflow.keras import backend as K
 from scipy.optimize import fmin_l_bfgs_b
 import cv2
 
-#from mask import mask_image
+from mask import mask_image
 
 #BACKGROUND_PATH = 'background.jpg'
 #IMAGE_PATH = 'sample.jpg'
@@ -18,14 +18,18 @@ STYLE_PATH = 'mosaic.jpg'
 
 #mask_image(IMAGE_PATH, BACKGROUND_PATH)
 
-width, height = load_img(TARGET_PATH).size
+#width, height = load_img(TARGET_PATH).size
 image_height = 400
-image_width = int(width * image_height/height)
+image_width = 400
+
+
 
 
 def preprocess_image(image_path):
 
-    img = load_img(image_path, target_size = (image_height, image_width))
+    #img = load_img(image_path, target_size = (image_height, image_width))
+    img = cv2.imread(image_path)
+    img = cv2.resize(img, (400 ,400))
     img = img_to_array(img)
     img = np.expand_dims(img, axis = 0)
     img = vgg19.preprocess_input(img)
@@ -146,7 +150,7 @@ fetch_loss_and_grads = K.function([combined_image], [loss, grads])
 
 evaluator = Evaluate()
 
-iterations = 2
+iterations = 1
 
 x = preprocess_image(TARGET_PATH)
 x = x.flatten()
